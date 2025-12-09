@@ -66,12 +66,12 @@ public class GUI {
 
         JPopupMenu contextMenu = new JPopupMenu();
 
-        JMenuItem itemInput = new JMenuItem("📝 Input Processes");
+        JMenuItem itemInput = new JMenuItem("📄 Input Processes");
         JMenuItem itemCpu = new JMenuItem("⚙️ CPU Scheduling");
-        JMenuItem itemMem = new JMenuItem("📮 Memory Management");
+        JMenuItem itemMem = new JMenuItem("🔮 Memory Management");
         JMenuItem itemExit = new JMenuItem("❌ Exit System");
 
-        itemInput.addActionListener(e -> openInternalWindow("Process Input", 400, 350));
+        itemInput.addActionListener(e -> openInternalWindow("Process Input", 600, 500));
         itemCpu.addActionListener(e -> openInternalWindow("CPU Scheduling", 800, 500));
         itemMem.addActionListener(e -> openInternalWindow("Memory Management", 700, 500));
         itemExit.addActionListener(e -> {
@@ -152,7 +152,7 @@ public class GUI {
         JButton btnCpu   = createTaskbarButton("CPU", "CPU Scheduling", null, new Color(100, 149, 237));
         JButton btnMem   = createTaskbarButton("MEMORY", "Memory Management", null, new Color(255, 215, 0));
         JButton btnExit  = createTaskbarButton("EXIT", "Exit", null, new Color(220, 60, 60));
-        btnInput.addActionListener(e -> openInternalWindow("Process Input", 400, 350));
+        btnInput.addActionListener(e -> openInternalWindow("Process Input", 600, 500));
         btnCpu.addActionListener(e -> openInternalWindow("CPU Scheduling", 800, 500));
         btnMem.addActionListener(e -> openInternalWindow("Memory Management", 700, 500));
         btnExit.addActionListener(e -> {
@@ -281,9 +281,15 @@ public class GUI {
         iframe.setVisible(true);
         iframe.setLayout(new BorderLayout());
 
-        JPanel content = new JPanel();
-        content.setBackground(new Color(245, 245, 245));
-        content.add(new JLabel("<html><center><h1>" + title + "</h1></center></html>"));
+        JPanel content;
+        if (title.equals("Process Input")) {
+            content = new ProcessInputPanel();
+        } else {
+            content = new JPanel();
+            content.setBackground(new Color(245, 245, 245));
+            content.add(new JLabel("<html><center><h1>" + title + "</h1></center></html>"));
+        }
+
         iframe.add(content);
         iframe.setFrameIcon(null);
         desktop.add(iframe);

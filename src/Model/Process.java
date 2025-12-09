@@ -1,6 +1,6 @@
 package Model;
 
-class Process {
+public class Process {
     private int pid;
     private int arrivalTime;
     private int burstTime;
@@ -10,7 +10,7 @@ class Process {
     private int turnAroundTime;
     private int waitingTime;
 
-    Process(int arrivalTime, int burstTime, int pid) {
+    public Process(int arrivalTime, int burstTime, int pid) {
         this.pid = pid;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;

@@ -2,12 +2,14 @@ package UI;
 
 import java.util.Scanner;
 
+import Controller.ProcessInputHandler;
 import Model.ProcessList;
 import Scripts.Scripts;
 
 public class Terminal {
 
     private Scanner scanner;
+    private ProcessInputHandler inputHandler;
     public static final String RESET = "\033[0m";
     public static final String RED = "\033[0;31m";
     public static final String GREEN = "\033[0;32m";
@@ -20,6 +22,7 @@ public class Terminal {
 
     public Terminal() {
         this.scanner = new Scanner(System.in);
+        this.inputHandler = new ProcessInputHandler(scanner);
         printWelcomeScreen();
         startMenu();
     }
@@ -57,7 +60,7 @@ public class Terminal {
                 switch (choice) {
                     case 1:
                         System.out.println(CYAN + ">> Initialize Process Input..." + RESET);
-                        // TODO: Call Input Method
+                        inputHandler.inputProcessesInteractive();
                         break;
                     case 2:
                         System.out.println(PURPLE + ">> Starting CPU Scheduling..." + RESET);
@@ -92,7 +95,7 @@ public class Terminal {
         System.out.println("Type 'help' for commands, 'exit' to return to menu.");
         boolean inCommandMode = true;
         java.util.Stack<String> historyStack = new java.util.Stack<>();
-        String[] commandArray = new String[8];
+        String[] commandArray = new String[12];
         commandArray[0] = "history";
         commandArray[1] = "!!";
         commandArray[2] = "clear";
@@ -101,12 +104,16 @@ public class Terminal {
         commandArray[5] = "help";
         commandArray[6] = "?";
         commandArray[7] = "open gui";
+        commandArray[8] = "addprocess";
+        commandArray[9] = "listprocess";
+        commandArray[10] = "clearprocess";
+        commandArray[11] = "input";
         String lastCommand = "";
         while (inCommandMode) {
             System.out.print(WHITE_BOLD + "MiniOS> " + RESET);
             String cmdInput = scanner.nextLine().trim();
             for(int i = 0; i < commandArray.length; i++) {
-                if(commandArray[i] .equals(cmdInput))
+                if(cmdInput.startsWith(commandArray[i]))
                     historyStack.push(Scripts.getTimestampedCommand(cmdInput));
             }
             if (cmdInput.equals("!!")) {
@@ -114,7 +121,7 @@ public class Terminal {
                     System.out.println(RED + "No previous command history!" + RESET);
                     continue;
                 } else {
-                    if(lastCommand != "clear")
+                    if(!lastCommand.equals("clear"))
                         System.out.println(GREEN + "Running: " + lastCommand + RESET);
                     cmdInput = lastCommand;
                 }
@@ -140,6 +147,28 @@ public class Terminal {
                 case "history":
                     Scripts.showHistory(historyStack);
                     lastCommand = "history";
+                    break;
+                case "input":
+                    lastCommand = "input";
+                    inputHandler.inputProcessesInteractive();
+                    break;
+                case "addprocess":
+                    lastCommand = "addprocess";
+                    if (parts.length >= 3) {
+                        String[] args = new String[parts.length - 1];
+                        System.arraycopy(parts, 1, args, 0, parts.length - 1);
+                        inputHandler.addProcessCommand(args);
+                    } else {
+                        System.out.println(RED + "Usage: addprocess <arrival_time> <burst_time>" + RESET);
+                    }
+                    break;
+                case "listprocess":
+                    lastCommand = "listprocess";
+                    inputHandler.listProcesses();
+                    break;
+                case "clearprocess":
+                    lastCommand = "clearprocess";
+                    inputHandler.clearProcesses();
                     break;
                 case "open":
                     try {
