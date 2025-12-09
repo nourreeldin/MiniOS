@@ -1,12 +1,13 @@
 package UI;
 
 import java.util.Scanner;
+
+import Model.ProcessList;
 import Scripts.Scripts;
 
 public class Terminal {
 
     private Scanner scanner;
-
     public static final String RESET = "\033[0m";
     public static final String RED = "\033[0;31m";
     public static final String GREEN = "\033[0;32m";
@@ -15,6 +16,7 @@ public class Terminal {
     public static final String PURPLE = "\033[0;35m";
     public static final String CYAN = "\033[0;36m";
     public static final String WHITE_BOLD = "\033[1;37m";
+    public final ProcessList processList = ProcessList.getInstance();
 
     public Terminal() {
         this.scanner = new Scanner(System.in);
@@ -89,10 +91,24 @@ public class Terminal {
         System.out.println(BLUE + "\n--- COMMAND MODE ACTIVATED ---" + RESET);
         System.out.println("Type 'help' for commands, 'exit' to return to menu.");
         boolean inCommandMode = true;
+        java.util.Stack<String> historyStack = new java.util.Stack<>();
+        String[] commandArray = new String[8];
+        commandArray[0] = "history";
+        commandArray[1] = "!!";
+        commandArray[2] = "clear";
+        commandArray[3] = "cls";
+        commandArray[4] = "credits";
+        commandArray[5] = "help";
+        commandArray[6] = "?";
+        commandArray[7] = "open gui";
         String lastCommand = "";
         while (inCommandMode) {
             System.out.print(WHITE_BOLD + "MiniOS> " + RESET);
             String cmdInput = scanner.nextLine().trim();
+            for(int i = 0; i < commandArray.length; i++) {
+                if(commandArray[i] .equals(cmdInput))
+                    historyStack.push(Scripts.getTimestampedCommand(cmdInput));
+            }
             if (cmdInput.equals("!!")) {
                 if (lastCommand.isEmpty()) {
                     System.out.println(RED + "No previous command history!" + RESET);
@@ -120,6 +136,10 @@ public class Terminal {
                 case "help":
                     lastCommand = "help";
                     Scripts.showHelp();
+                    break;
+                case "history":
+                    Scripts.showHistory(historyStack);
+                    lastCommand = "history";
                     break;
                 case "open":
                     try {

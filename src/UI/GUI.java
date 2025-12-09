@@ -7,7 +7,6 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import UI.Terminal;
 
 public class GUI {
 

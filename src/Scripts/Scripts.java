@@ -1,8 +1,10 @@
 package Scripts;
 
 import UI.GUI;
-
 import java.io.IOException;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.util.Stack;
 
 public class Scripts {
     public static final String RESET = "\033[0m";
@@ -19,7 +21,6 @@ public class Scripts {
 
     public static void clear() {
         try {
-            // Check if the OS is Windows
             if (System.getProperty("os.name").contains("Windows")) {
                 new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
             } else {
@@ -36,8 +37,22 @@ public class Scripts {
     public static void terminateProcess(int processId) {
 
     }
-    public static void showHistory() {
+    public static String getTimestampedCommand(String command) {
+        String time = new SimpleDateFormat("HH:mm:ss").format(new Date());
+        return "[" + time + "] " + command;
+    }
+    public static void showHistory(Stack<String> stack) {
+        System.out.println(WHITE_BOLD + "\n--- EXECUTION HISTORY ---" + RESET);
 
+        if (stack.isEmpty()) {
+            System.out.println(RED + "   (History is empty)   " + RESET);
+        } else {
+            for (int i = stack.size() - 2; i >= 0; i--) {
+                String entry = stack.get(i);
+                System.out.println(CYAN + " | " + RESET + entry);
+            }
+        }
+        System.out.println(WHITE_BOLD + "-------------------------" + RESET);
     }
     public static void openGUI(String s) {
         System.out.println(GREEN + ">> Launching GUI..." + RESET);
@@ -62,6 +77,7 @@ public class Scripts {
         System.out.println(" - clear / cls : Clear the terminal screen");
         System.out.println(" - credits     : Show credits and team info");
         System.out.println(" - exit        : Return to main menu");
-        System.out.println(" - open gui     : Open the graphical user interface");
+        System.out.println(" - history     : Show history of commands with dates");
+        System.out.println(" - open gui    : Open the graphical user interface");
     }
 }
