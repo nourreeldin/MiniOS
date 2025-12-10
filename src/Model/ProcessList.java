@@ -26,30 +26,4 @@ public class ProcessList {
     public ArrayList<Process> getProcesses() {
         return processes;
     }
-
-    public int getTotalTurnAroundTime() {
-        int total = 0;
-        for(Process p: processes) {
-            total += p.getTurnAroundTime();
-        }
-        return total;
-    }
-
-    public int getTotalWaitingTime() {
-        int total = 0;
-        for(Process p: processes) {
-            total += p.getWaitingTime();
-        }
-        return total;
-    }
-
-    public double getAverageTurnAroundTime() {
-        double size = processes.size();
-        return getTotalTurnAroundTime() / size;
-    }
-
-    public double getAverageTurnWaitingTime() {
-        double size = processes.size();
-        return getTotalWaitingTime() / size;
-    }
 }

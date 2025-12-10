@@ -93,6 +93,8 @@ public class Scripts {
         System.out.println("║                   - Add process (Arrival, Burst Time)     ║");
         System.out.println("║    listprocess    - Display all processes                 ║");
         System.out.println("║    clearprocess   - Clear all processes                   ║");
+        System.out.println("║    setpriority    - Set priority of a process             ║");
+        System.out.println("║    schedule       - open scheduling algorithms list       ║");
         System.out.println(YELLOW + "╠═══════════════════════════════════════════════════════════╣" + RESET);
         System.out.println(WHITE_BOLD + "║  GUI COMMAND:                                             ║" + RESET);
         System.out.println("║    open gui       - Launch graphical interface            ║");

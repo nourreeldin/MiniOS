@@ -22,9 +22,11 @@ public class GUI {
         } catch (Exception e) { e.printStackTrace(); }
         initializeDesktop();
     }
+
     public void setGUIAddress(String address) {
         this.address = address;
     }
+
     private void initializeDesktop() {
         mainFrame = new JFrame("MiniOS");
         mainFrame.setSize(WIDTH, HEIGHT);
@@ -72,7 +74,7 @@ public class GUI {
         JMenuItem itemExit = new JMenuItem("❌ Exit System");
 
         itemInput.addActionListener(e -> openInternalWindow("Process Input", 600, 500));
-        itemCpu.addActionListener(e -> openInternalWindow("CPU Scheduling", 800, 500));
+        itemCpu.addActionListener(e -> openInternalWindow("CPU Scheduling", 900, 600));
         itemMem.addActionListener(e -> openInternalWindow("Memory Management", 700, 500));
         itemExit.addActionListener(e -> {
             System.out.println(Terminal.RED + "\n>> GUI Terminated." + Terminal.RESET);
@@ -153,7 +155,7 @@ public class GUI {
         JButton btnMem   = createTaskbarButton("MEMORY", "Memory Management", null, new Color(255, 215, 0));
         JButton btnExit  = createTaskbarButton("EXIT", "Exit", null, new Color(220, 60, 60));
         btnInput.addActionListener(e -> openInternalWindow("Process Input", 600, 500));
-        btnCpu.addActionListener(e -> openInternalWindow("CPU Scheduling", 800, 500));
+        btnCpu.addActionListener(e -> openInternalWindow("CPU Scheduling", 900, 600));
         btnMem.addActionListener(e -> openInternalWindow("Memory Management", 700, 500));
         btnExit.addActionListener(e -> {
             System.out.println(Terminal.RED + "\n>> GUI Terminated." + Terminal.RESET);
@@ -284,6 +286,8 @@ public class GUI {
         JPanel content;
         if (title.equals("Process Input")) {
             content = new ProcessInputPanel();
+        } else if (title.equals("CPU Scheduling")) {
+            content = new CPUSchedulingPanel();
         } else {
             content = new JPanel();
             content.setBackground(new Color(245, 245, 245));

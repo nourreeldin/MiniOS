@@ -2,6 +2,7 @@ package UI;
 
 import java.util.Scanner;
 
+import Controller.CPUSchedulingHandler;
 import Controller.ProcessInputHandler;
 import Model.ProcessList;
 import Scripts.Scripts;
@@ -10,6 +11,7 @@ public class Terminal {
 
     private Scanner scanner;
     private ProcessInputHandler inputHandler;
+    private CPUSchedulingHandler schedulingHandler;
     public static final String RESET = "\033[0m";
     public static final String RED = "\033[0;31m";
     public static final String GREEN = "\033[0;32m";
@@ -23,6 +25,7 @@ public class Terminal {
     public Terminal() {
         this.scanner = new Scanner(System.in);
         this.inputHandler = new ProcessInputHandler(scanner);
+        this.schedulingHandler = new CPUSchedulingHandler(scanner);
         printWelcomeScreen();
         startMenu();
     }
@@ -39,6 +42,7 @@ public class Terminal {
         System.out.println("Press " + WHITE_BOLD + "Enter" + RESET + " to initialize the system...");
         scanner.nextLine();
     }
+
     public void showOptions() {
         System.out.println(WHITE_BOLD + "--- MAIN MENU ---" + RESET);
         System.out.println("1. " + CYAN + "Input Processes" + RESET);
@@ -48,6 +52,7 @@ public class Terminal {
         System.out.println("5. " + BLUE  + "Use Commands (Shell Mode)" + RESET);
         System.out.println("6. " + RED + "Exit" + RESET);
     }
+
     public void startMenu() {
         boolean exit = false;
         showOptions();
@@ -63,8 +68,7 @@ public class Terminal {
                         inputHandler.inputProcessesInteractive();
                         break;
                     case 2:
-                        System.out.println(PURPLE + ">> Starting CPU Scheduling..." + RESET);
-                        // TODO: Call Scheduling Method
+                        schedulingHandler.showSchedulingMenu();
                         break;
                     case 3:
                         System.out.println(YELLOW + ">> Starting Memory Management..." + RESET);
@@ -95,7 +99,7 @@ public class Terminal {
         System.out.println("Type 'help' for commands, 'exit' to return to menu.");
         boolean inCommandMode = true;
         java.util.Stack<String> historyStack = new java.util.Stack<>();
-        String[] commandArray = new String[12];
+        String[] commandArray = new String[13];
         commandArray[0] = "history";
         commandArray[1] = "!!";
         commandArray[2] = "clear";
@@ -108,14 +112,18 @@ public class Terminal {
         commandArray[9] = "listprocess";
         commandArray[10] = "clearprocess";
         commandArray[11] = "input";
+        commandArray[12] = "setpriority";
         String lastCommand = "";
+
         while (inCommandMode) {
             System.out.print(WHITE_BOLD + "MiniOS> " + RESET);
             String cmdInput = scanner.nextLine().trim();
+
             for(int i = 0; i < commandArray.length; i++) {
                 if(cmdInput.startsWith(commandArray[i]))
                     historyStack.push(Scripts.getTimestampedCommand(cmdInput));
             }
+
             if (cmdInput.equals("!!")) {
                 if (lastCommand.isEmpty()) {
                     System.out.println(RED + "No previous command history!" + RESET);
@@ -126,6 +134,7 @@ public class Terminal {
                     cmdInput = lastCommand;
                 }
             }
+
             String[] parts = cmdInput.split("\\s+");
             String command = parts[0].toLowerCase();
 
@@ -135,23 +144,28 @@ public class Terminal {
                     Scripts.clear();
                     lastCommand = "clear";
                     break;
+
                 case "credits":
                     Scripts.showCredits();
                     lastCommand = "credits";
                     break;
+
                 case "?":
                 case "help":
                     lastCommand = "help";
                     Scripts.showHelp();
                     break;
+
                 case "history":
                     Scripts.showHistory(historyStack);
                     lastCommand = "history";
                     break;
+
                 case "input":
                     lastCommand = "input";
                     inputHandler.inputProcessesInteractive();
                     break;
+
                 case "addprocess":
                     lastCommand = "addprocess";
                     if (parts.length >= 3) {
@@ -162,14 +176,27 @@ public class Terminal {
                         System.out.println(RED + "Usage: addprocess <arrival_time> <burst_time>" + RESET);
                     }
                     break;
+
                 case "listprocess":
                     lastCommand = "listprocess";
                     inputHandler.listProcesses();
                     break;
+
                 case "clearprocess":
                     lastCommand = "clearprocess";
                     inputHandler.clearProcesses();
                     break;
+
+                case "setpriority":
+                    lastCommand = "setpriority";
+                    schedulingHandler.setPrioritiesInteractive();
+                    break;
+
+                case "schedule":
+                    lastCommand = "schedule";
+                    schedulingHandler.showSchedulingMenu();
+                    break;
+
                 case "open":
                     try {
                         if(parts[1].toLowerCase().equals("gui")) {
@@ -182,13 +209,16 @@ public class Terminal {
                         System.out.println(RED + "Unknown command: '" + command + "'. Type 'help' for list." + RESET);
                     }
                     break;
+
                 case "exit":
                     inCommandMode = false;
                     System.out.println(BLUE + "Returning to Main Menu..." + RESET);
                     showOptions();
                     break;
+
                 case "":
                     break;
+
                 default:
                     System.out.println(RED + "Unknown command: '" + command + "'. Type 'help' for list." + RESET);
             }

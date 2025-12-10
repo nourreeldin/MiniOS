@@ -5,7 +5,6 @@ public class Process {
     private int arrivalTime;
     private int burstTime;
     private int priority;
-    private int timeQuantum;
     private int completionTime;
     private int turnAroundTime;
     private int waitingTime;
@@ -32,10 +31,6 @@ public class Process {
         return priority;
     }
 
-    public int getTimeQuantum() {
-        return timeQuantum;
-    }
-
     public int getCompletionTime() {
         return completionTime;
     }
@@ -49,10 +44,6 @@ public class Process {
     }
     public void setPriority(int priority) {
         this.priority = priority;
-    }
-
-    public void setTimeQuantum(int timeQuantum) {
-        this.timeQuantum = timeQuantum;
     }
 
     public void setCompletionTime(int completionTime) {
