@@ -94,7 +94,17 @@ public class Scripts {
         System.out.println("║    listprocess    - Display all processes                 ║");
         System.out.println("║    clearprocess   - Clear all processes                   ║");
         System.out.println("║    setpriority    - Set priority of a process             ║");
-        System.out.println("║    schedule       - open scheduling algorithms list       ║");
+        System.out.println(YELLOW + "╠═══════════════════════════════════════════════════════════╣" + RESET);
+        System.out.println(WHITE_BOLD + "║  SCHEDULING COMMANDS:                                     ║" + RESET);
+        System.out.println("║    schedule       - Open scheduling algorithms list       ║");
+        System.out.println("║    settimequantum <Q> - Set time quantum for Round Robin  ║");
+        System.out.println("║    runsjf         - Run Shortest Job First                ║");
+        System.out.println("║    runprioritynp  - Run Priority Non-Preemptive           ║");
+        System.out.println("║    runpriorityp   - Run Priority Preemptive               ║");
+        System.out.println("║    runrr          - Run Round Robin                       ║");
+        System.out.println(YELLOW + "╠═══════════════════════════════════════════════════════════╣" + RESET);
+        System.out.println(WHITE_BOLD + "║  MEMORY MANAGEMENT COMMANDS:                              ║" + RESET);
+        System.out.println("║    memory         - Open memory management menu           ║");
         System.out.println(YELLOW + "╠═══════════════════════════════════════════════════════════╣" + RESET);
         System.out.println(WHITE_BOLD + "║  GUI COMMAND:                                             ║" + RESET);
         System.out.println("║    open gui       - Launch graphical interface            ║");

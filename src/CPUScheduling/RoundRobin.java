@@ -1,5 +1,4 @@
 package CPUScheduling;
-
 import Model.Process;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -99,9 +98,6 @@ public class RoundRobin {
         return ganttChart;
     }
 
-    public static int getTimeQuantum() {
-        return timeQuantum;
-    }
 
     public static int getTotalTurnAroundTime() {
         int total = 0;

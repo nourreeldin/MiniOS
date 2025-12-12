@@ -63,7 +63,6 @@ public class CPUSchedulingHandler {
         }
     }
 
-    // Command line versions
     public void runSJFCommand() {
         if (processList.getSize() == 0) {
             System.out.println(Terminal.RED + "Error: No processes available." + Terminal.RESET);
@@ -205,13 +204,10 @@ public class CPUSchedulingHandler {
         System.out.println(Terminal.WHITE_BOLD + "      " + algorithmName + Terminal.RESET);
         System.out.println(Terminal.GREEN + "========================================" + Terminal.RESET);
 
-        // Gantt Chart
         displayGanttChart(ganttChart);
 
-        // Process Table
         displayProcessTable(processes);
 
-        // Statistics
         System.out.println(Terminal.CYAN + "\n┌─────────────────────────────────────┐" + Terminal.RESET);
         System.out.println(Terminal.CYAN + "│         PERFORMANCE METRICS         │" + Terminal.RESET);
         System.out.println(Terminal.CYAN + "├─────────────────────────────────────┤" + Terminal.RESET);
@@ -231,14 +227,12 @@ public class CPUSchedulingHandler {
             return;
         }
 
-        // Top border
         System.out.print("  ");
         for (Object obj : ganttChart) {
             System.out.print("┌────");
         }
         System.out.println("┐");
 
-        // Process IDs
         System.out.print("  ");
         for (Object obj : ganttChart) {
             int pid = extractPid(obj);
@@ -246,14 +240,12 @@ public class CPUSchedulingHandler {
         }
         System.out.println("│");
 
-        // Bottom border
         System.out.print("  ");
         for (Object obj : ganttChart) {
             System.out.print("└────");
         }
         System.out.println("┘");
 
-        // Timeline
         System.out.print("  ");
         for (Object obj : ganttChart) {
             int start = extractStartTime(obj);

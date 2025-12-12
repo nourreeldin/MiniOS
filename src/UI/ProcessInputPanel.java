@@ -39,7 +39,6 @@ public class ProcessInputPanel extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Arrival Time
         gbc.gridx = 0; gbc.gridy = 0;
         panel.add(new JLabel("Arrival Time:"), gbc);
 
@@ -47,7 +46,6 @@ public class ProcessInputPanel extends JPanel {
         txtArrivalTime = new JTextField(10);
         panel.add(txtArrivalTime, gbc);
 
-        // Burst Time
         gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("Burst Time:"), gbc);
 
@@ -55,7 +53,6 @@ public class ProcessInputPanel extends JPanel {
         txtBurstTime = new JTextField(10);
         panel.add(txtBurstTime, gbc);
 
-        // Add Button
         gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
         JButton btnAdd = new JButton("Add Process");
         btnAdd.setBackground(new Color(100, 149, 237));

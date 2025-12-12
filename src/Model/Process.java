@@ -8,11 +8,13 @@ public class Process {
     private int completionTime;
     private int turnAroundTime;
     private int waitingTime;
+    private int memorySize;
 
     public Process(int arrivalTime, int burstTime, int pid) {
         this.pid = pid;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
+        this.memorySize = 0;
     }
 
     public int getPid() {
@@ -42,6 +44,11 @@ public class Process {
     public int getWaitingTime() {
         return waitingTime;
     }
+
+    public int getMemorySize() {
+        return memorySize;
+    }
+
     public void setPriority(int priority) {
         this.priority = priority;
     }
@@ -56,5 +63,9 @@ public class Process {
 
     public void setWaitingTime(int waitingTime) {
         this.waitingTime = waitingTime;
+    }
+
+    public void setMemorySize(int memorySize) {
+        this.memorySize = memorySize;
     }
 }

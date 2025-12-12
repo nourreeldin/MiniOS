@@ -2,6 +2,7 @@ package UI;
 
 import java.util.Scanner;
 
+import Controller.MemoryManagementHandler;
 import Controller.CPUSchedulingHandler;
 import Controller.ProcessInputHandler;
 import Model.ProcessList;
@@ -12,6 +13,7 @@ public class Terminal {
     private Scanner scanner;
     private ProcessInputHandler inputHandler;
     private CPUSchedulingHandler schedulingHandler;
+    private MemoryManagementHandler memoryHandler;
     public static final String RESET = "\033[0m";
     public static final String RED = "\033[0;31m";
     public static final String GREEN = "\033[0;32m";
@@ -26,6 +28,7 @@ public class Terminal {
         this.scanner = new Scanner(System.in);
         this.inputHandler = new ProcessInputHandler(scanner);
         this.schedulingHandler = new CPUSchedulingHandler(scanner);
+        this.memoryHandler = new MemoryManagementHandler(scanner);
         printWelcomeScreen();
         startMenu();
     }
@@ -71,8 +74,7 @@ public class Terminal {
                         schedulingHandler.showSchedulingMenu();
                         break;
                     case 3:
-                        System.out.println(YELLOW + ">> Starting Memory Management..." + RESET);
-                        // TODO: Call Memory Method
+                        memoryHandler.showMemoryMenu();
                         break;
                     case 4:
                         Scripts.openGUI("from menu");
@@ -99,7 +101,7 @@ public class Terminal {
         System.out.println("Type 'help' for commands, 'exit' to return to menu.");
         boolean inCommandMode = true;
         java.util.Stack<String> historyStack = new java.util.Stack<>();
-        String[] commandArray = new String[13];
+        String[] commandArray = new String[18];
         commandArray[0] = "history";
         commandArray[1] = "!!";
         commandArray[2] = "clear";
@@ -113,6 +115,11 @@ public class Terminal {
         commandArray[10] = "clearprocess";
         commandArray[11] = "input";
         commandArray[12] = "setpriority";
+        commandArray[13] = "settimequantum";
+        commandArray[14] = "runsjf";
+        commandArray[15] = "runprioritynp";
+        commandArray[16] = "runpriorityp";
+        commandArray[17] = "runrr";
         String lastCommand = "";
 
         while (inCommandMode) {
@@ -192,9 +199,48 @@ public class Terminal {
                     schedulingHandler.setPrioritiesInteractive();
                     break;
 
+                case "settimequantum":
+                    lastCommand = "settimequantum";
+                    if (parts.length >= 2) {
+                        try {
+                            int quantum = Integer.parseInt(parts[1]);
+                            schedulingHandler.setTimeQuantum(quantum);
+                        } catch (NumberFormatException ex) {
+                            System.out.println(RED + "Error: Invalid time quantum value!" + RESET);
+                        }
+                    } else {
+                        System.out.println(RED + "Usage: settimequantum <value>" + RESET);
+                    }
+                    break;
+
+                case "runsjf":
+                    lastCommand = "runsjf";
+                    schedulingHandler.runSJFCommand();
+                    break;
+
+                case "runprioritynp":
+                    lastCommand = "runprioritynp";
+                    schedulingHandler.runPriorityNPCommand();
+                    break;
+
+                case "runpriorityp":
+                    lastCommand = "runpriorityp";
+                    schedulingHandler.runPriorityPCommand();
+                    break;
+
+                case "runrr":
+                    lastCommand = "runrr";
+                    schedulingHandler.runRRCommand();
+                    break;
+
                 case "schedule":
                     lastCommand = "schedule";
                     schedulingHandler.showSchedulingMenu();
+                    break;
+
+                case "memory":
+                    lastCommand = "memory";
+                    memoryHandler.showMemoryMenu();
                     break;
 
                 case "open":

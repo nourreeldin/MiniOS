@@ -288,6 +288,8 @@ public class GUI {
             content = new ProcessInputPanel();
         } else if (title.equals("CPU Scheduling")) {
             content = new CPUSchedulingPanel();
+        } else if (title.equals("Memory Management")) {
+            content = new MemoryManagementPanel();
         } else {
             content = new JPanel();
             content.setBackground(new Color(245, 245, 245));
