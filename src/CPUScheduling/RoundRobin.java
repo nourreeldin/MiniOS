@@ -37,7 +37,6 @@ public class RoundRobin {
 
         Queue<Integer> readyQueue = new LinkedList<>();
         int completed = 0;
-        int idx = 0;
 
         for (int i = 0; i < processes.size(); i++) {
             if (processes.get(i).getArrivalTime() <= time) {

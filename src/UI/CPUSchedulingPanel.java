@@ -88,7 +88,6 @@ public class CPUSchedulingPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBackground(new Color(245, 245, 245));
 
-        // Gantt Chart Panel
         ganttPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -102,7 +101,6 @@ public class CPUSchedulingPanel extends JPanel {
         ganttPanel.setBorder(BorderFactory.createTitledBorder("Gantt Chart"));
         panel.add(ganttPanel, BorderLayout.NORTH);
 
-        // Process Table
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBackground(Color.WHITE);
         tablePanel.setBorder(BorderFactory.createTitledBorder("Process Details"));
@@ -121,7 +119,6 @@ public class CPUSchedulingPanel extends JPanel {
         tablePanel.add(scrollPane, BorderLayout.CENTER);
         panel.add(tablePanel, BorderLayout.CENTER);
 
-        // Statistics Panel
         resultArea = new JTextArea(4, 30);
         resultArea.setEditable(false);
         resultArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -188,14 +185,14 @@ public class CPUSchedulingPanel extends JPanel {
 
         try {
             switch (selectedIndex) {
-                case 0: // SJF
+                case 0: 
                     SJF.apply(processes);
                     displayResults("SJF", SJF.getProcessesList(), SJF.getGanttChart(),
                             SJF.getAverageTurnAroundTime(), SJF.getAverageWaitingTime(),
                             SJF.getCPUUtilization());
                     break;
 
-                case 1: // Priority Non-Preemptive
+                case 1: 
                     if (!validatePriorities()) return;
                     Priority.applyNonPreemptive(processes);
                     displayResults("Priority Non-Preemptive", Priority.getProcessesList(),
@@ -203,7 +200,7 @@ public class CPUSchedulingPanel extends JPanel {
                             Priority.getAverageWaitingTime(), Priority.getCPUUtilization());
                     break;
 
-                case 2: // Priority Preemptive
+                case 2: 
                     if (!validatePriorities()) return;
                     Priority.applyPreemptive(processes);
                     displayResults("Priority Preemptive", Priority.getProcessesList(),
@@ -211,7 +208,7 @@ public class CPUSchedulingPanel extends JPanel {
                             Priority.getAverageWaitingTime(), Priority.getCPUUtilization());
                     break;
 
-                case 3: // Round Robin
+                case 3: 
                     int quantum = (Integer) quantumSpinner.getValue();
                     RoundRobin.apply(processes, quantum);
                     displayResults("Round Robin (Q=" + quantum + ")", RoundRobin.getProcessesList(),
@@ -242,14 +239,12 @@ public class CPUSchedulingPanel extends JPanel {
 
     private void displayResults(String algorithmName, ArrayList<Process> processes,
                                 ArrayList<?> ganttChart, double avgTAT, double avgWT, double cpuUtil) {
-        // Update Gantt Chart
         ganttPanel.removeAll();
         ganttPanel.setLayout(new BorderLayout());
         ganttPanel.add(new GanttChartComponent(ganttChart), BorderLayout.CENTER);
         ganttPanel.revalidate();
         ganttPanel.repaint();
 
-        // Update Process Table
         tableModel.setRowCount(0);
         for (Process p : processes) {
             tableModel.addRow(new Object[] {
@@ -263,7 +258,6 @@ public class CPUSchedulingPanel extends JPanel {
             });
         }
 
-        // Update Statistics
         resultArea.setText(String.format(
                 "Algorithm: %s\n" +
                         "Average Turnaround Time: %.2f\n" +

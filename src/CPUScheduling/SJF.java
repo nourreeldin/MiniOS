@@ -25,12 +25,9 @@ public class SJF {
         ganttChart = new ArrayList<>();
         ArrayList<Process> completed = new ArrayList<>();
         ArrayList<Process> processes = new ArrayList<>(list);
-
         for (Process p : processes)
             p.setCompletionTime(-1);
-
         processes.sort(Comparator.comparingInt(Process::getArrivalTime));
-
         while (completed.size() < processes.size()) {
             Process shortest = null;
             for (Process p : processes) {

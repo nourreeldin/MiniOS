@@ -34,7 +34,7 @@ public class MemoryManagementPanel extends JPanel {
     private class PagingPanel extends JPanel {
         private JTextField txtTotalMemory, txtFrameSize;
         private JTextArea resultArea;
-        private PagingVisualizer visualizer; // New Visual Component
+        private PagingVisualizer visualizer; 
         private Paging pagingSystem;
         private final ProcessList processList;
 
@@ -115,7 +115,7 @@ public class MemoryManagementPanel extends JPanel {
             visualScroll.setPreferredSize(new Dimension(400, 250));
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, visualScroll, logScroll);
-            splitPane.setResizeWeight(0.4); // 40% space for visualizer
+            splitPane.setResizeWeight(0.4); 
             splitPane.setDividerLocation(250);
 
             panel.add(splitPane, BorderLayout.CENTER);
@@ -258,13 +258,13 @@ public class MemoryManagementPanel extends JPanel {
                 int panelWidth = getWidth();
 
                 Map<Integer, Color> processColors = new HashMap<>();
-                Random rand = new Random(123); // Fixed seed for consistent colors
+                Random rand = new Random(123); 
 
                 for (int i = 0; i < data.getTotalFrames(); i++) {
                     Paging.FrameInfo frame = data.getFrameTable().get(i);
 
                     if (frame.isFree) {
-                        g2.setColor(new Color(220, 220, 220)); // Grey for free
+                        g2.setColor(new Color(220, 220, 220)); 
                     } else {
                         processColors.putIfAbsent(frame.processId, new Color(rand.nextInt(150), rand.nextInt(150), rand.nextInt(200) + 50));
                         g2.setColor(processColors.get(frame.processId));
