@@ -116,6 +116,7 @@ public class Scripts {
         System.out.println(YELLOW + "╠═══════════════════════════════════════════════════════════════╣" + RESET);
         System.out.println(WHITE_BOLD + "║  INTEGRATION COMMANDS:                                        ║" + RESET);
         System.out.println("║    integrate        - Run integrated memory + disk simulation ║");
+        System.out.println("║    metrics          - Show integrated metrics comparison      ║");
         System.out.println("║                       Format: PID:page pairs e.g. 0:1 1:0     ║");
         System.out.println("║                       Clock frames show ref bits (page/bit)   ║");
         System.out.println("║                       Terminated/missing PIDs show status     ║");

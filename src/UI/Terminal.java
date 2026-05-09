@@ -139,7 +139,7 @@ public class Terminal {
                     "history","!!","clear","cls","credits","help","?","open gui",
                     "addprocess","listprocess","clearprocess","input","sysparams",
                     "setpriority","settimequantum","runsjf","runprioritynp","runpriorityp","runrr",
-                    "pagereplace","diskschedule","integrate","performance","schedule","memory"
+                    "pagereplace","diskschedule","integrate","performance","schedule","memory","metrics"
             };
             for (String kc : knownCmds)
                 if (cmdInput.startsWith(kc)) { historyStack.push(Scripts.getTimestampedCommand(cmdInput)); break; }
@@ -228,6 +228,11 @@ public class Terminal {
                 case "integrate":
                     lastCommand = "integrate";
                     integrationHandler.showMenu(scanner);
+                    break;
+
+                case "metrics":
+                    lastCommand = "metrics";
+                    integrationHandler.showMetrics(scanner);
                     break;
 
                 case "performance":

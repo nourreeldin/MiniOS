@@ -58,6 +58,12 @@ public class StoragePanel extends JPanel {
     private int        coreStep = 0;
     private IntegrationHandler.IntegrationResult coreResult;
 
+    private JTextField metRefField, metHeadField;
+    private JComboBox<String> metPageAlgCombo, metDiskAlgCombo, metDirCombo;
+    private JLabel lblTotalFaults, lblFaultRate, lblTotalHeadMovement, lblAvgSeekTime;
+    private DefaultTableModel compTableModel;
+    private JTable compTable;
+
     public StoragePanel() {
         setLayout(new BorderLayout());
         setBackground(BG);
@@ -68,6 +74,7 @@ public class StoragePanel extends JPanel {
         tabs.addTab("Page Replacement", buildPageReplacementTab());
         tabs.addTab("Disk Scheduling",  buildDiskSchedulingTab());
         tabs.addTab("Integration",      buildIntegrationTab());
+        tabs.addTab("Metrics",          buildMetricsTab());
 
         add(tabs, BorderLayout.CENTER);
         refreshProcessCombos();
@@ -137,6 +144,112 @@ public class StoragePanel extends JPanel {
         centerPanel.add(split, BorderLayout.CENTER);
         root.add(centerPanel, BorderLayout.CENTER);
         return root;
+    }
+
+    private JPanel buildMetricsTab() {
+        JPanel root = new JPanel(new BorderLayout(8, 8));
+        root.setBackground(BG);
+
+        JPanel ctrl = new JPanel(new GridBagLayout());
+        ctrl.setBackground(WHITE);
+        ctrl.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder("Metrics Parameters"),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)));
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(5, 5, 5, 5); g.fill = GridBagConstraints.HORIZONTAL;
+
+        g.gridx=0; g.gridy=0; ctrl.add(new JLabel("Page Ref (PID:page):"), g);
+        g.gridx=1; metRefField = new JTextField("0:1 1:2 0:3 1:4 0:2", 20); ctrl.add(metRefField, g);
+        g.gridx=2; ctrl.add(new JLabel("Initial Head:"), g);
+        g.gridx=3; metHeadField = new JTextField("50", 5); ctrl.add(metHeadField, g);
+
+        g.gridx=0; g.gridy=1; ctrl.add(new JLabel("Page Alg:"), g);
+        g.gridx=1; metPageAlgCombo = new JComboBox<>(new String[]{"FIFO","LRU","OPT","Clock"}); ctrl.add(metPageAlgCombo, g);
+        g.gridx=2; ctrl.add(new JLabel("Disk Alg:"), g);
+        g.gridx=3; metDiskAlgCombo = new JComboBox<>(new String[]{"FCFS","SSTF","SCAN","CSCAN","LOOK","CLOOK"}); ctrl.add(metDiskAlgCombo, g);
+
+        g.gridx=4; g.gridy=1; ctrl.add(new JLabel("Dir:"), g);
+        g.gridx=5; metDirCombo = new JComboBox<>(new String[]{"Right","Left"}); ctrl.add(metDirCombo, g);
+
+        g.gridx=0; g.gridy=2; g.gridwidth=6;
+        JButton runBtn = makeButton("Generate Metrics", BLUE);
+        runBtn.addActionListener(e -> generateMetricsUI());
+        ctrl.add(runBtn, g);
+        root.add(ctrl, BorderLayout.NORTH);
+
+        JPanel centerPanel = new JPanel(new BorderLayout(5, 5));
+        centerPanel.setBackground(BG);
+
+        JPanel summaryPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        summaryPanel.setBackground(BG);
+
+        JPanel memPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        memPanel.setBackground(WHITE);
+        memPanel.setBorder(BorderFactory.createTitledBorder("Memory Metrics"));
+        lblTotalFaults = new JLabel("Total Page Faults: -");
+        lblFaultRate = new JLabel("Page Fault Rate: -");
+        memPanel.add(lblTotalFaults); memPanel.add(lblFaultRate);
+
+        JPanel diskPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        diskPanel.setBackground(WHITE);
+        diskPanel.setBorder(BorderFactory.createTitledBorder("Disk Metrics"));
+        lblTotalHeadMovement = new JLabel("Total Head Movement: -");
+        lblAvgSeekTime = new JLabel("Average Seek Time: -");
+        diskPanel.add(lblTotalHeadMovement); diskPanel.add(lblAvgSeekTime);
+
+        summaryPanel.add(memPanel); summaryPanel.add(diskPanel);
+        centerPanel.add(summaryPanel, BorderLayout.NORTH);
+
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBackground(WHITE);
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Comparison Table Example"));
+        compTableModel = new DefaultTableModel(new String[]{"Algorithm", "Page Faults", "Disk Movement"}, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        compTable = new JTable(compTableModel);
+        compTable.setRowHeight(25);
+        tablePanel.add(new JScrollPane(compTable), BorderLayout.CENTER);
+        centerPanel.add(tablePanel, BorderLayout.CENTER);
+
+        root.add(centerPanel, BorderLayout.CENTER);
+        return root;
+    }
+
+    private void generateMetricsUI() {
+        String refStr = metRefField.getText().trim();
+        if (refStr.isEmpty()) { showErr("Enter reference string."); return; }
+        java.util.List<int[]> refs = new java.util.ArrayList<>();
+        try {
+            for (String tok : refStr.split("\\s+")) {
+                String[] pp = tok.split(":");
+                refs.add(new int[]{Integer.parseInt(pp[0]), Integer.parseInt(pp[1])});
+            }
+        } catch (Exception ex) { showErr("Invalid format. Use PID:page."); return; }
+
+        int[] pages = refs.stream().mapToInt(x -> x[1]).toArray();
+        int[] pids  = refs.stream().mapToInt(x -> x[0]).toArray();
+
+        int head;
+        try { head = Integer.parseInt(metHeadField.getText().trim()); }
+        catch (Exception ex) { showErr("Invalid head."); return; }
+
+        String pageAlg = (String) metPageAlgCombo.getSelectedItem();
+        String diskAlg = (String) metDiskAlgCombo.getSelectedItem();
+        String dir = ((String) metDirCombo.getSelectedItem()).toLowerCase();
+
+        IntegrationHandler handler = new IntegrationHandler();
+        IntegrationHandler.MetricsReport rep = handler.generateMetrics(pages, pids, pageAlg, diskAlg, dir, head);
+
+        lblTotalFaults.setText("Total Page Faults: " + rep.totalPageFaults);
+        lblFaultRate.setText(String.format("Page Fault Rate: %.2f%%", rep.pageFaultRate));
+        lblTotalHeadMovement.setText("Total Head Movement: " + rep.totalDiskMovement);
+        lblAvgSeekTime.setText(String.format("Average Seek Time: %.2f", rep.averageSeekTime));
+
+        compTableModel.setRowCount(0);
+        for (Object[] row : rep.comparisonData) {
+            compTableModel.addRow(row);
+        }
     }
 
     private void runPageReplacement() {

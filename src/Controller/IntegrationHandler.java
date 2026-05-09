@@ -35,6 +35,40 @@ public class IntegrationHandler {
         public String diskDirection;
     }
 
+    public static class MetricsReport {
+        public int totalPageFaults;
+        public double pageFaultRate;
+        public int totalDiskMovement;
+        public double averageSeekTime;
+        public String mainPageAlg;
+        public String mainDiskAlg;
+        public Object[][] comparisonData;
+    }
+
+    public MetricsReport generateMetrics(int[] pages, int[] pids, String pageAlg, String diskAlg, String dir, int head) {
+        MetricsReport rep = new MetricsReport();
+        rep.mainPageAlg = pageAlg;
+        rep.mainDiskAlg = diskAlg;
+
+        IntegrationResult mainResult = simulate(pages, pids, pageAlg, diskAlg, dir, head);
+        rep.totalPageFaults = mainResult.totalPageFaults;
+        rep.pageFaultRate = pages.length > 0 ? ((double) mainResult.totalPageFaults / pages.length) * 100.0 : 0.0;
+        rep.totalDiskMovement = mainResult.totalDiskMovement;
+        rep.averageSeekTime = mainResult.totalPageFaults > 0 ? (double) mainResult.totalDiskMovement / mainResult.totalPageFaults : 0.0;
+
+        String[] allAlgs = {"FIFO", "LRU", "MRU", "OPT", "CLOCK"};
+        rep.comparisonData = new Object[allAlgs.length][3];
+
+        for (int i = 0; i < allAlgs.length; i++) {
+            IntegrationResult r = simulate(pages, pids, allAlgs[i], diskAlg, dir, head);
+            rep.comparisonData[i][0] = allAlgs[i];
+            rep.comparisonData[i][1] = r.totalPageFaults;
+            rep.comparisonData[i][2] = r.totalDiskMovement;
+        }
+
+        return rep;
+    }
+
     public IntegrationResult simulate(
             int[] pageRefString, int[] processPids,
             String pageAlg, String diskAlg,
@@ -352,5 +386,73 @@ public class IntegrationHandler {
 
         IntegrationResult result = simulate(pages, pids, pageAlg, diskAlg, dir, head);
         printResult(result);
+    }
+
+    public void showMetrics(java.util.Scanner scanner) {
+        ProcessList pl = ProcessList.getInstance();
+        System.out.println(Terminal.CYAN + "\n=== INTEGRATION METRICS ===" + Terminal.RESET);
+        if (pl.getSize() == 0) {
+            System.out.println(Terminal.RED + "No processes. Please add processes first." + Terminal.RESET);
+            return;
+        }
+
+        System.out.print("Enter page reference string as 'PID:page PID:page ...' (e.g. 0:3 1:1 0:5): ");
+        String refStr = scanner.nextLine().trim();
+        List<int[]> refs = new ArrayList<>();
+        try {
+            for (String tok : refStr.split("\\s+")) {
+                String[] pp = tok.split(":");
+                refs.add(new int[]{Integer.parseInt(pp[0]), Integer.parseInt(pp[1])});
+            }
+        } catch (Exception e) {
+            System.out.println(Terminal.RED + "Invalid format. Use PID:page pairs." + Terminal.RESET);
+            return;
+        }
+        int[] pages = refs.stream().mapToInt(x -> x[1]).toArray();
+        int[] pids  = refs.stream().mapToInt(x -> x[0]).toArray();
+
+        System.out.println("Page alg: 1.FIFO  2.LRU  3.OPT  4.Clock");
+        System.out.print("Choose: ");
+        String pageAlg;
+        try {
+            int c = Integer.parseInt(scanner.nextLine().trim());
+            pageAlg = new String[]{"FIFO", "LRU", "OPT", "CLOCK"}[c - 1];
+        } catch (Exception e) { System.out.println(Terminal.RED + "Invalid." + Terminal.RESET); return; }
+
+        System.out.println("Disk alg: 1.FCFS  2.SSTF  3.SCAN  4.CSCAN  5.LOOK  6.CLOOK");
+        System.out.print("Choose: ");
+        String diskAlg;
+        try {
+            int c = Integer.parseInt(scanner.nextLine().trim());
+            diskAlg = new String[]{"FCFS", "SSTF", "SCAN", "CSCAN", "LOOK", "CLOOK"}[c - 1];
+        } catch (Exception e) { System.out.println(Terminal.RED + "Invalid." + Terminal.RESET); return; }
+
+        String dir = "right";
+        if (!diskAlg.equals("FCFS") && !diskAlg.equals("SSTF")) {
+            System.out.print("Direction (left/right): ");
+            dir = scanner.nextLine().trim().toLowerCase();
+            if (!dir.equals("left") && !dir.equals("right")) dir = "right";
+        }
+
+        System.out.print("Initial disk head position (0-" + (pl.getDiskSize() - 1) + "): ");
+        int head;
+        try { head = Integer.parseInt(scanner.nextLine().trim()); }
+        catch (Exception e) { System.out.println(Terminal.RED + "Invalid." + Terminal.RESET); return; }
+
+        MetricsReport rep = generateMetrics(pages, pids, pageAlg, diskAlg, dir, head);
+
+        System.out.println("\nMemory Metrics (" + pageAlg + ")");
+        System.out.println("  Total Page Faults: " + rep.totalPageFaults);
+        System.out.printf("  Page Fault Rate: %.2f%%%n", rep.pageFaultRate);
+
+        System.out.println("\nDisk Metrics (" + diskAlg + ")");
+        System.out.println("  Total Head Movement: " + rep.totalDiskMovement);
+        System.out.printf("  Average Seek Time: %.2f%n", rep.averageSeekTime);
+
+        System.out.println("\nComparison Table Example");
+        System.out.printf("%-12s %-15s %-15s%n", "Algorithm", "Page Faults", "Disk Movement");
+        for (Object[] row : rep.comparisonData) {
+            System.out.printf("%-12s %-15s %-15s%n", row[0], row[1], row[2]);
+        }
     }
 }
