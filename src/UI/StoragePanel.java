@@ -30,6 +30,7 @@ public class StoragePanel extends JPanel {
     private JTable     prTable;
     private RAMView    prRamView;
     private Timer      prTimer;
+    private JSlider    prSlider;
     private int        prStep = 0;
     private PageReplacementHandler.Result prResult;
 
@@ -39,6 +40,7 @@ public class StoragePanel extends JPanel {
     private JLabel     dsStatsLabel;
     private DiskView   dsDiskView;
     private Timer      dsTimer;
+    private JSlider    dsSlider;
     private int        dsStep = 0;
     private DiskSchedulingHandler.DiskResult dsResult;
 
@@ -52,6 +54,7 @@ public class StoragePanel extends JPanel {
     private RAMView    coreRamView;
     private DiskView   coreDiskView;
     private Timer      coreTimer;
+    private JSlider    coreSlider;
     private int        coreStep = 0;
     private IntegrationHandler.IntegrationResult coreResult;
 
@@ -105,11 +108,12 @@ public class StoragePanel extends JPanel {
         visPanel.setBackground(WHITE);
         visPanel.setBorder(BorderFactory.createTitledBorder("RAM Visualization"));
         visPanel.add(prRamView, BorderLayout.CENTER);
+        prSlider = createSpeedSlider(e -> { if(prTimer != null) prTimer.setDelay(((JSlider)e.getSource()).getValue()); });
         visPanel.add(createPlaybackBar(
                 e -> { if(prTimer != null) prTimer.start(); },
                 e -> { if(prTimer != null) prTimer.stop(); },
                 e -> { if(prTimer != null) { prTimer.stop(); prAnimateStep(); } },
-                e -> { if(prTimer != null) prTimer.setDelay(((JSlider)e.getSource()).getValue()); }
+                prSlider
         ), BorderLayout.SOUTH);
         centerPanel.add(visPanel, BorderLayout.NORTH);
 
@@ -164,7 +168,8 @@ public class StoragePanel extends JPanel {
 
         prStep = 0;
         prRamView.reset(frames, alg);
-        prTimer = new Timer(1000, e -> prAnimateStep());
+        int initialDelay = prSlider != null ? prSlider.getValue() : 1000;
+        prTimer = new Timer(initialDelay, e -> prAnimateStep());
         prTimer.start();
     }
 
@@ -225,11 +230,12 @@ public class StoragePanel extends JPanel {
         JPanel visPanel = new JPanel(new BorderLayout()); visPanel.setBackground(WHITE);
         visPanel.setBorder(BorderFactory.createTitledBorder("Disk Head Animation"));
         visPanel.add(dsDiskView, BorderLayout.CENTER);
+        dsSlider = createSpeedSlider(e -> { if(dsTimer != null) dsTimer.setDelay(((JSlider)e.getSource()).getValue()); });
         visPanel.add(createPlaybackBar(
                 e -> { if(dsTimer != null) dsTimer.start(); },
                 e -> { if(dsTimer != null) dsTimer.stop(); },
                 e -> { if(dsTimer != null) { dsTimer.stop(); dsAnimateStep(); } },
-                e -> { if(dsTimer != null) dsTimer.setDelay(((JSlider)e.getSource()).getValue()); }
+                dsSlider
         ), BorderLayout.SOUTH);
         centerPanel.add(visPanel, BorderLayout.NORTH);
 
@@ -267,7 +273,8 @@ public class StoragePanel extends JPanel {
 
         dsStep = 0;
         dsDiskView.reset(pl.getDiskSize(), dsResult.seekSequence);
-        dsTimer = new Timer(500, e -> dsAnimateStep());
+        int initialDelay = dsSlider != null ? dsSlider.getValue() : 500;
+        dsTimer = new Timer(initialDelay, e -> dsAnimateStep());
         dsTimer.start();
     }
 
@@ -316,11 +323,12 @@ public class StoragePanel extends JPanel {
         JPanel dashContainer = new JPanel(new BorderLayout());
         dashContainer.setBackground(BG);
         dashContainer.add(dashPanel, BorderLayout.CENTER);
+        coreSlider = createSpeedSlider(e -> { if(coreTimer != null) coreTimer.setDelay(((JSlider)e.getSource()).getValue()); });
         dashContainer.add(createPlaybackBar(
                 e -> { if(coreTimer != null) coreTimer.start(); },
                 e -> { if(coreTimer != null) coreTimer.stop(); },
                 e -> { if(coreTimer != null) { coreTimer.stop(); coreAnimateStep(); } },
-                e -> { if(coreTimer != null) coreTimer.setDelay(((JSlider)e.getSource()).getValue()); }
+                coreSlider
         ), BorderLayout.SOUTH);
         centerPanel.add(dashContainer, BorderLayout.NORTH);
 
@@ -375,7 +383,8 @@ public class StoragePanel extends JPanel {
         coreCpuView.reset();
         coreRamView.reset(pl.getNumberOfFrames(), pageAlg);
         coreDiskView.reset(pl.getDiskSize(), null); 
-        coreTimer = new Timer(1000, e -> coreAnimateStep());
+        int initialDelay = coreSlider != null ? coreSlider.getValue() : 1000;
+        coreTimer = new Timer(initialDelay, e -> coreAnimateStep());
         coreTimer.start();
     }
 
@@ -385,7 +394,7 @@ public class StoragePanel extends JPanel {
         }
         IntegrationHandler.IntegrationStep s = coreResult.steps.get(coreStep);
         coreCpuView.setPid(s.processId, !s.validPage);
-        coreRamView.updateState(s.frames, s.clockRefBits, s.page, s.pageFault);
+        coreRamView.updateState(s.frames, s.clockRefBits, s.page, s.pageFault, s.targetFrame);
         if(s.diskHead != null && s.diskHead.length > 0) {
             java.util.List<Integer> movement = new java.util.ArrayList<>();
             for(int h : s.diskHead) movement.add(h);
@@ -438,16 +447,20 @@ public class StoragePanel extends JPanel {
         JButton btn = new JButton(text); btn.setBackground(bg); btn.setForeground(WHITE); btn.setFocusPainted(false); btn.setFont(new Font("Segoe UI", Font.BOLD, 12)); return btn;
     }
 
-    private JPanel createPlaybackBar(ActionListener play, ActionListener pause, ActionListener step, javax.swing.event.ChangeListener speed) {
+    private JSlider createSpeedSlider(javax.swing.event.ChangeListener speed) {
+        JSlider slider = new JSlider(100, 2000, 1000);
+        slider.setInverted(true); 
+        slider.addChangeListener(speed);
+        slider.setBackground(WHITE);
+        return slider;
+    }
+
+    private JPanel createPlaybackBar(ActionListener play, ActionListener pause, ActionListener step, JSlider slider) {
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5)); bar.setBackground(WHITE);
         JButton btnPlay = new JButton("▶ Play"); btnPlay.addActionListener(play); bar.add(btnPlay);
         JButton btnPause = new JButton("⏸ Pause"); btnPause.addActionListener(pause); bar.add(btnPause);
         JButton btnStep = new JButton("⏭ Step"); btnStep.addActionListener(step); bar.add(btnStep);
         bar.add(new JLabel("Speed:"));
-        JSlider slider = new JSlider(100, 2000, 1000);
-        slider.setInverted(true); 
-        slider.addChangeListener(speed);
-        slider.setBackground(WHITE);
         bar.add(slider);
         return bar;
     }
@@ -462,18 +475,24 @@ public class StoragePanel extends JPanel {
         private int currentPage = -1;
         private boolean isFault = false;
         private String alg = "";
+        private int targetFrameIndex = -1;
 
         public RAMView() { setPreferredSize(new Dimension(200, 80)); setBackground(WHITE); }
 
         public void reset(int capacity, String alg) {
             this.capacity = capacity; this.alg = alg;
             frames = new int[capacity]; for(int i=0; i<capacity; i++) frames[i] = -1;
-            refBits = new boolean[capacity]; currentPage = -1; isFault = false;
+            refBits = new boolean[capacity]; currentPage = -1; isFault = false; targetFrameIndex = -1;
             repaint();
         }
 
         public void updateState(int[] f, boolean[] rb, int page, boolean fault) {
-            this.frames = f; this.refBits = rb; this.currentPage = page; this.isFault = fault;
+            this.frames = f; this.refBits = rb; this.currentPage = page; this.isFault = fault; this.targetFrameIndex = -1;
+            repaint();
+        }
+
+        public void updateState(int[] f, boolean[] rb, int page, boolean fault, int targetFrame) {
+            this.frames = f; this.refBits = rb; this.currentPage = page; this.isFault = fault; this.targetFrameIndex = targetFrame;
             repaint();
         }
 
@@ -490,12 +509,22 @@ public class StoragePanel extends JPanel {
             for(int i=0; i<capacity; i++) {
                 int x = startX + i * (boxW + gap);
                 RoundRectangle2D rect = new RoundRectangle2D.Float(x, y, boxW, boxH, 8, 8);
-                if(frames != null && i < frames.length && frames[i] == currentPage) {
-                    g2.setColor(isFault ? RED : GREEN);
-                    g2.setStroke(new BasicStroke(3));
+                if (targetFrameIndex != -1) {
+                    if (i == targetFrameIndex) {
+                        g2.setColor(isFault ? RED : GREEN);
+                        g2.setStroke(new BasicStroke(3));
+                    } else {
+                        g2.setColor(Color.LIGHT_GRAY);
+                        g2.setStroke(new BasicStroke(1));
+                    }
                 } else {
-                    g2.setColor(Color.LIGHT_GRAY);
-                    g2.setStroke(new BasicStroke(1));
+                    if(frames != null && i < frames.length && frames[i] == currentPage) {
+                        g2.setColor(isFault ? RED : GREEN);
+                        g2.setStroke(new BasicStroke(3));
+                    } else {
+                        g2.setColor(Color.LIGHT_GRAY);
+                        g2.setStroke(new BasicStroke(1));
+                    }
                 }
                 g2.draw(rect);
 

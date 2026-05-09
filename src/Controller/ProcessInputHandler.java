@@ -40,19 +40,18 @@ public class ProcessInputHandler {
                     continue;
                 }
 
-                int blockStart = processList.getTotalPages();
-                int lastBlock  = blockStart + pages - 1;
-                if (lastBlock >= processList.getDiskSize()) {
-                    System.out.println(Terminal.RED + "Error: Process needs disk blocks " + blockStart + "-" + lastBlock
-                            + " but disk only has 0-" + (processList.getDiskSize() - 1) + "." + Terminal.RESET);
+                if (processList.getTotalPages() + pages > processList.getDiskSize()) {
+                    System.out.println(Terminal.RED + "Error: Process needs " + pages + " disk blocks "
+                            + " but disk only has " + (processList.getDiskSize() - processList.getTotalPages()) + " free blocks left." + Terminal.RESET);
                     System.out.println(Terminal.YELLOW + "Reduce the number of pages or increase disk size (sysparams)." + Terminal.RESET);
                     continue;
                 }
 
                 processList.addProcess(arrivalTime, burstTime, pages);
                 int pid = processList.getSize() - 1;
-                System.out.printf(Terminal.GREEN + "✓ P%d added (AT:%d BT:%d Pages:%d DiskBlocks:%d-%d)%n" + Terminal.RESET,
-                        pid, arrivalTime, burstTime, pages, blockStart, lastBlock);
+                String blocksStr = processList.getProcess(pid).getPageToBlockMap().values().toString();
+                System.out.printf(Terminal.GREEN + "✓ P%d added (AT:%d BT:%d Pages:%d DiskBlocks:%s)%n" + Terminal.RESET,
+                        pid, arrivalTime, burstTime, pages, blocksStr);
                 processCount++;
 
             } catch (NumberFormatException e) {
@@ -107,8 +106,13 @@ public class ProcessInputHandler {
             String in = scanner.nextLine().trim();
             if (!in.isEmpty()) {
                 int ds = Integer.parseInt(in);
-                if (ds <= 0) System.out.println(Terminal.RED + "Invalid disk size, keeping current." + Terminal.RESET);
-                else pl.setDiskSize(ds);
+                if (ds <= 0) {
+                    System.out.println(Terminal.RED + "Invalid disk size, keeping current." + Terminal.RESET);
+                } else if (ds < pl.getTotalPages()) {
+                    System.out.println(Terminal.RED + "Error: Disk size cannot be less than total pages currently in the system (" + pl.getTotalPages() + ")." + Terminal.RESET);
+                } else {
+                    pl.setDiskSize(ds);
+                }
             }
         } catch (NumberFormatException e) {
             System.out.println(Terminal.RED + "Invalid, keeping current." + Terminal.RESET);
@@ -133,18 +137,17 @@ public class ProcessInputHandler {
                 return;
             }
 
-            int blockStart = processList.getTotalPages();
-            int lastBlock  = blockStart + pages - 1;
-            if (lastBlock >= processList.getDiskSize()) {
-                System.out.println(Terminal.RED + "Error: Process needs disk blocks " + blockStart + "-" + lastBlock
-                        + " but disk only has 0-" + (processList.getDiskSize() - 1) + "." + Terminal.RESET);
+            if (processList.getTotalPages() + pages > processList.getDiskSize()) {
+                System.out.println(Terminal.RED + "Error: Process needs " + pages + " disk blocks "
+                        + " but disk only has " + (processList.getDiskSize() - processList.getTotalPages()) + " free blocks left." + Terminal.RESET);
                 return;
             }
 
             processList.addProcess(at, bt, pages);
             int pid = processList.getSize() - 1;
-            System.out.printf(Terminal.GREEN + "✓ P%d added (AT:%d BT:%d Pages:%d DiskBlocks:%d-%d)%n" + Terminal.RESET,
-                    pid, at, bt, pages, blockStart, lastBlock);
+            String blocksStr = processList.getProcess(pid).getPageToBlockMap().values().toString();
+            System.out.printf(Terminal.GREEN + "✓ P%d added (AT:%d BT:%d Pages:%d DiskBlocks:%s)%n" + Terminal.RESET,
+                    pid, at, bt, pages, blocksStr);
         } catch (NumberFormatException e) {
             System.out.println(Terminal.RED + "Error: Integers only." + Terminal.RESET);
         }
@@ -159,7 +162,7 @@ public class ProcessInputHandler {
     }
 
     public void clearProcesses() {
-        processList.getProcesses().clear();
+        processList.clearProcesses();
         System.out.println(Terminal.GREEN + "✓ All processes cleared." + Terminal.RESET);
     }
 
@@ -168,9 +171,8 @@ public class ProcessInputHandler {
         System.out.println(Terminal.CYAN + "│PID │  AT  │  BT │ Pages │ Disk Blocks │" + Terminal.RESET);
         System.out.println(Terminal.CYAN + "├────┼──────┼─────┼───────┼─────────────┤" + Terminal.RESET);
         for (var p : processList.getProcesses()) {
-            int start = p.getDiskBlock(0);
-            int end   = p.getDiskBlock(p.getNumberOfPages() - 1);
-            String blocks = start >= 0 ? start + "-" + end : "N/A";
+            String blocks = p.getPageToBlockMap().values().toString();
+            if (blocks.length() > 12) blocks = blocks.substring(0, 9) + "...";
             System.out.printf(Terminal.WHITE_BOLD + "│%-4d│  %-4d│  %-3d│  %-5d│ %-12s│%n" + Terminal.RESET,
                     p.getPid(), p.getArrivalTime(), p.getBurstTime(), p.getNumberOfPages(), blocks);
         }

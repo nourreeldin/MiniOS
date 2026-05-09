@@ -170,6 +170,11 @@ public class ProcessInputPanel extends JPanel {
             if (burstTime <= 0)  { showErr("Burst Time must be > 0");    return; }
             if (pages <= 0)      { showErr("Pages must be > 0");          return; }
 
+            if (processList.getTotalPages() + pages > processList.getDiskSize()) {
+                showErr("Process needs " + pages + " disk blocks but disk only has " + (processList.getDiskSize() - processList.getTotalPages()) + " free blocks left.\nIncrease disk size first.");
+                return;
+            }
+
             processList.addProcess(arrivalTime, burstTime, pages);
 
             txtArrivalTime.setText(""); txtBurstTime.setText("");
@@ -194,6 +199,10 @@ public class ProcessInputPanel extends JPanel {
             int fs = Integer.parseInt(txtFrameSize.getText().trim());
             int ds = Integer.parseInt(txtDiskSize.getText().trim());
             if (ms <= 0 || fs <= 0 || ds <= 0) { showErr("All values must be > 0"); return; }
+            if (ds < processList.getTotalPages()) { 
+                showErr("Disk size must not be less than the total pages in the system (" + processList.getTotalPages() + ")."); 
+                return; 
+            }
             processList.setMemorySize(ms);
             processList.setFrameSize(fs);
             processList.setDiskSize(ds);
@@ -216,9 +225,8 @@ public class ProcessInputPanel extends JPanel {
     private void updateTable() {
         tableModel.setRowCount(0);
         for (var process : processList.getProcesses()) {
-            int s = process.getDiskBlock(0);
-            int e = process.getDiskBlock(process.getNumberOfPages() - 1);
-            String blocks = s >= 0 ? s + "-" + e : "N/A";
+            String blocks = process.getPageToBlockMap().values().toString();
+            if (blocks.length() > 20) blocks = blocks.substring(0, 17) + "...";
             tableModel.addRow(new Object[]{
                     process.getPid(), process.getArrivalTime(), process.getBurstTime(),
                     process.getNumberOfPages(), blocks});
@@ -236,7 +244,7 @@ public class ProcessInputPanel extends JPanel {
                 "Clear all " + processList.getSize() + " processes?",
                 "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (result == JOptionPane.YES_OPTION) {
-            processList.getProcesses().clear();
+            processList.clearProcesses();
             updateTable();
             notifyStoragePanel();
         }

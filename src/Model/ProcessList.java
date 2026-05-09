@@ -1,6 +1,10 @@
 package Model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 public class ProcessList {
     private final ArrayList<Process> processes;
@@ -10,8 +14,13 @@ public class ProcessList {
     private int diskSize    = 200;  
     private int frameSize   = 4;    
 
+    private final Set<Integer> usedDiskBlocks;
+    private final Random rand;
+
     private ProcessList() {
         this.processes = new ArrayList<>();
+        this.usedDiskBlocks = new HashSet<>();
+        this.rand = new Random();
     }
 
     public static ProcessList getInstance() {
@@ -28,9 +37,7 @@ public class ProcessList {
         int pid = processes.size();
         Process p = new Process(arrivalTime, burstTime, pid);
         p.setNumberOfPages(numberOfPages);
-        int blockStart = 0;
-        for (Process existing : processes) blockStart += existing.getNumberOfPages();
-        p.assignDiskBlocks(blockStart);
+        assignRandomBlocks(p);
         processes.add(p);
     }
 
@@ -56,11 +63,28 @@ public class ProcessList {
     public void setFrameSize(int fs)   { this.frameSize  = fs; }
 
     public void reassignDiskBlocks() {
-        int blockStart = 0;
+        usedDiskBlocks.clear();
         for (Process p : processes) {
-            p.assignDiskBlocks(blockStart);
-            blockStart += p.getNumberOfPages();
+            assignRandomBlocks(p);
         }
+    }
+
+    private void assignRandomBlocks(Process p) {
+        List<Integer> blocks = new ArrayList<>();
+        while (blocks.size() < p.getNumberOfPages()) {
+            if (usedDiskBlocks.size() >= diskSize) break; 
+            int b = rand.nextInt(diskSize);
+            if (!usedDiskBlocks.contains(b)) {
+                usedDiskBlocks.add(b);
+                blocks.add(b);
+            }
+        }
+        p.assignDiskBlocks(blocks);
+    }
+
+    public void clearProcesses() {
+        processes.clear();
+        usedDiskBlocks.clear();
     }
 
     public int getTotalPages() {

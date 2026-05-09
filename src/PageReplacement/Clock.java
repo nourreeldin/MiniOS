@@ -47,7 +47,10 @@ public class Clock {
 
     public static List<int[]> simulate(int[] pages, int capacity) {
         List<int[]> steps = new ArrayList<>();
-        if (capacity == 0) return steps;
+        if (capacity == 0) {
+            for (int page : pages) steps.add(new int[]{page, 1, -1});
+            return steps;
+        }
         int[] frames = new int[capacity];
         boolean[] refBits = new boolean[capacity];
         Arrays.fill(frames, -1);

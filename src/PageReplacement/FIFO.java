@@ -32,7 +32,10 @@ public class FIFO {
 
     public static List<int[]> simulate(int[] pages, int capacity) {
         List<int[]> steps = new ArrayList<>();
-        if (capacity == 0) return steps;
+        if (capacity == 0) {
+            for (int page : pages) steps.add(new int[]{page, 1, -1});
+            return steps;
+        }
         int[] frames = new int[capacity];
         Arrays.fill(frames, -1);
         HashSet<Integer> set = new HashSet<>(capacity);

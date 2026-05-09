@@ -55,10 +55,10 @@ public class Process {
     public void setNumberOfPages(int n)             { this.numberOfPages = n; }
     public void setTerminated(boolean t)            { this.terminated = t; }
 
-    public void assignDiskBlocks(int blockStart) {
+    public void assignDiskBlocks(List<Integer> blocks) {
         pageToBlockMap.clear();
-        for (int p = 0; p < numberOfPages; p++) {
-            pageToBlockMap.put(p, blockStart + p);
+        for (int p = 0; p < numberOfPages && p < blocks.size(); p++) {
+            pageToBlockMap.put(p, blocks.get(p));
         }
     }
 

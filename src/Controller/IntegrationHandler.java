@@ -23,6 +23,7 @@ public class IntegrationHandler {
         public String message;
         public int terminatedPid;         
         public int newCpuPid;             
+        public int targetFrame;           
     }
 
     public static class IntegrationResult {
@@ -84,6 +85,7 @@ public class IntegrationHandler {
             if (proc == null) {
                 step.validPage    = false;
                 step.pageFault    = false;
+                step.targetFrame  = -1;
                 step.message      = "P" + pid + " does not present!";
                 step.frames       = frames.clone();
                 step.clockRefBits = isClock ? clockRefBits.clone() : null;
@@ -95,6 +97,7 @@ public class IntegrationHandler {
             if (terminated.contains(pid)) {
                 step.validPage    = false;
                 step.pageFault    = false;
+                step.targetFrame  = -1;
                 step.message      = "P" + pid + " does not present!";
                 step.frames       = frames.clone();
                 step.clockRefBits = isClock ? clockRefBits.clone() : null;
@@ -107,6 +110,7 @@ public class IntegrationHandler {
                 terminated.add(pid);
                 step.validPage     = false;
                 step.pageFault     = false;
+                step.targetFrame   = -1;
                 step.terminatedPid = pid;
                 for (int f = 0; f < frames.length; f++) {
                     if (frameOwner[f] == pid) {
@@ -136,6 +140,7 @@ public class IntegrationHandler {
 
             if (hitSlot >= 0) {
                 step.pageFault = false;
+                step.targetFrame = hitSlot;
                 lastUsed.put(pageKey, timeStamp++);
                 if (isClock) clockRefBits[hitSlot] = true;  
                 step.message      = "P" + pid + " page " + page + " -> HIT";
@@ -152,37 +157,44 @@ public class IntegrationHandler {
                 step.diskHead = new int[]{currentHead, diskBlock};
                 currentHead = diskBlock;
 
-                int emptySlot = -1;
-                for (int f = 0; f < frames.length; f++) {
-                    if (frames[f] == -1) { emptySlot = f; break; }
-                }
-
-                if (emptySlot >= 0) {
-                    frames[emptySlot]    = page;
-                    frameOwner[emptySlot] = pid;
-                    clockRefBits[emptySlot] = false;
-                    if (pageAlg.equalsIgnoreCase("FIFO")) fifoSlots.add(emptySlot);
-                    step.message = "P" + pid + " page " + page + " -> FAULT | Load from Disk Block "
-                            + diskBlock + " -> Frame " + emptySlot;
+                if (capacity == 0) {
+                    step.targetFrame = -1;
+                    step.message = "P" + pid + " page " + page + " -> FAULT | Capacity is 0, no frame loaded";
                 } else {
-                    int evictSlot = selectVictimFrame(pageAlg, frames, frameOwner, lastUsed,
-                            pageRefString, processPids, i, capacity, fifoSlots, clockRefBits, clockPointer);
+                    int emptySlot = -1;
+                    for (int f = 0; f < frames.length; f++) {
+                        if (frames[f] == -1) { emptySlot = f; break; }
+                    }
 
-                    if (isClock) clockPointer = (evictSlot + 1) % capacity;
+                    if (emptySlot >= 0) {
+                        frames[emptySlot]    = page;
+                        frameOwner[emptySlot] = pid;
+                        clockRefBits[emptySlot] = false;
+                        step.targetFrame = emptySlot;
+                        if (pageAlg.equalsIgnoreCase("FIFO")) fifoSlots.add(emptySlot);
+                        step.message = "P" + pid + " page " + page + " -> FAULT | Load from Disk Block "
+                                + diskBlock + " -> Frame " + emptySlot;
+                    } else {
+                        int evictSlot = selectVictimFrame(pageAlg, frames, frameOwner, lastUsed,
+                                pageRefString, processPids, i, capacity, fifoSlots, clockRefBits, clockPointer);
 
-                    int evictedPage = frames[evictSlot];
-                    int evictedPid  = frameOwner[evictSlot];
-                    step.replacedPage = evictedPage;
-                    lastUsed.remove(evictedPid * 10000 + evictedPage);
+                        if (isClock) clockPointer = (evictSlot + 1) % capacity;
 
-                    frames[evictSlot]    = page;
-                    frameOwner[evictSlot] = pid;
-                    clockRefBits[evictSlot] = false;
-                    if (pageAlg.equalsIgnoreCase("FIFO")) fifoSlots.add(evictSlot);
+                        int evictedPage = frames[evictSlot];
+                        int evictedPid  = frameOwner[evictSlot];
+                        step.replacedPage = evictedPage;
+                        lastUsed.remove(evictedPid * 10000 + evictedPage);
 
-                    step.message = "P" + pid + " page " + page + " -> FAULT | Replace P"
-                            + evictedPid + ":page" + evictedPage + " using " + pageAlg
-                            + " | Disk Block " + diskBlock + " -> Frame " + evictSlot;
+                        frames[evictSlot]    = page;
+                        frameOwner[evictSlot] = pid;
+                        clockRefBits[evictSlot] = false;
+                        step.targetFrame = evictSlot;
+                        if (pageAlg.equalsIgnoreCase("FIFO")) fifoSlots.add(evictSlot);
+
+                        step.message = "P" + pid + " page " + page + " -> FAULT | Replace P"
+                                + evictedPid + ":page" + evictedPage + " using " + pageAlg
+                                + " | Disk Block " + diskBlock + " -> Frame " + evictSlot;
+                    }
                 }
                 lastUsed.put(pageKey, timeStamp++);
             }
